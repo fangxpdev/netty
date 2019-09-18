@@ -61,6 +61,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static final AtomicReferenceFieldUpdater<DefaultChannelPipeline, MessageSizeEstimator.Handle> ESTIMATOR =
             AtomicReferenceFieldUpdater.newUpdater(
                     DefaultChannelPipeline.class, MessageSizeEstimator.Handle.class, "estimatorHandle");
+
+    //AbstractChannelHandlerContext 中维护了 channelHandler实例，所以操作的时候都是通过channelHandlerContext
     final AbstractChannelHandlerContext head;
     final AbstractChannelHandlerContext tail;
 
@@ -117,6 +119,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
+        //类型是DefaultChannelHandlerContext
         return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
     }
 
@@ -199,10 +202,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            //检查是否已经添加
             checkMultiplicity(handler);
 
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            //将channelHandlerContext添加到pipiline
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
@@ -224,6 +229,17 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     *   head                    node                  tail
+     * +--------------+      +-------------+      +------------+
+     * | pre     next | <--> | pre    next | <--> | pre   next |
+     * +--------------+      +-------------+      +------------+
+     *
+     * 双向链表
+     * addLast0:注意这个链表中 <p>首尾是不动的添加的时候操作的是中间的node<p/>
+     *
+     * @param newCtx
+     */
     private void addLast0(AbstractChannelHandlerContext newCtx) {
         AbstractChannelHandlerContext prev = tail.prev;
         newCtx.prev = prev;
@@ -599,6 +615,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static void checkMultiplicity(ChannelHandler handler) {
         if (handler instanceof ChannelHandlerAdapter) {
             ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
+            //非共享handler 不能添加到多个pipeline
             if (!h.isSharable() && h.added) {
                 throw new ChannelPipelineException(
                         h.getClass().getName() +

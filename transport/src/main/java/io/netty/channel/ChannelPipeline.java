@@ -204,6 +204,9 @@ import java.util.NoSuchElementException;
  * // a time-consuming task.
  * // If your business logic is fully asynchronous or finished very quickly, you don't
  * // need to specify a group.
+ *
+ * // 用户可以自己指定线程池去执行耗时的任务，避免阻塞I/0线程（workGroup）
+ *
  * pipeline.addLast(group, "handler", new MyBusinessLogicHandler());
  * </pre>
  *

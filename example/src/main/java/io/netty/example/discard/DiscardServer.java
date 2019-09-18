@@ -47,7 +47,9 @@ public final class DiscardServer {
             sslCtx = null;
         }
 
+        //boss线程池 nThreads指定 boss线程池只有一个线程 用户处理连接
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        //work线程池 处理具体的I/O操作 业务线程池
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();

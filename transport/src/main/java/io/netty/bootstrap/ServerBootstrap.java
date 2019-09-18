@@ -123,7 +123,10 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) {
+        //设置options  保存到 io.netty.channel.socket.nio.NioServerSocketChannel.config 成员变量中
         setChannelOptions(channel, options0().entrySet().toArray(newOptionArray(0)), logger);
+
+        //设置attr 保存到成员变量 io.netty.util.DefaultAttributeMap.attributes
         setAttributes(channel, attrs0().entrySet().toArray(newAttrArray(0)));
 
         ChannelPipeline p = channel.pipeline();
